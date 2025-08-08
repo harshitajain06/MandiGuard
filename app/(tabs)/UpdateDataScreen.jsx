@@ -1,0 +1,171 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, Modal,
+  StyleSheet, ScrollView
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { db, dailyDataRef } from '../../config/firebase';
+import { getDocs, doc, updateDoc } from 'firebase/firestore';
+
+export default function UpdateStockScreen() {
+  const [entries, setEntries] = useState([]);
+  const [selectedUID, setSelectedUID] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const [dailySold, setDailySold] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [predictedWaste, setPredictedWaste] = useState(null);
+  const [restockRecommendation, setRestockRecommendation] = useState('');
+
+  useEffect(() => {
+    const fetchEntries = async () => {
+      const snapshot = await getDocs(dailyDataRef);
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setEntries(data);
+    };
+    fetchEntries();
+  }, []);
+
+  useEffect(() => {
+    const match = entries.find(entry => entry.uid === selectedUID);
+    setSelectedEntry(match || null);
+    setPredictedWaste(null);
+    setRestockRecommendation('');
+    setDailySold('');
+  }, [selectedUID]);
+
+  const handleUpdate = async () => {
+    if (!dailySold || !selectedEntry) {
+      alert("Please fill daily sold quantity.");
+      return;
+    }
+
+    const { quantity, shelfLife, createdAt } = selectedEntry;
+
+    const averageStock = quantity / shelfLife;
+    const remainingDays = Math.max(
+      0,
+      Math.ceil((new Date(createdAt.toDate ? createdAt.toDate() : createdAt).getTime() + shelfLife * 24 * 60 * 60 * 1000 - Date.now()) / (1000 * 3600 * 24))
+    );
+
+    const wasteUnits = Math.max(0, (averageStock - dailySold) * remainingDays);
+    const wastePercent = (wasteUnits / quantity) * 100;
+
+    let recommendation = '';
+    if (dailySold > averageStock) {
+      const restock = Math.round((dailySold - averageStock) * remainingDays);
+      recommendation = `You may need to restock approx. ${restock} kg based on recent sales.`;
+    }
+
+    setPredictedWaste(wasteUnits.toFixed(1));
+    setRestockRecommendation(recommendation);
+    setModalVisible(true);
+
+    // Update Firestore with the new sold quantity
+    const docRef = doc(db, 'dailyData', selectedEntry.id);
+    await updateDoc(docRef, {
+      lastSold: parseFloat(dailySold),
+      wastePredicted: parseFloat(wasteUnits.toFixed(1))
+    });
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Update Daily Stock</Text>
+
+      <Text style={styles.label}>Select UID</Text>
+      <View style={styles.picker}>
+        <Picker
+          selectedValue={selectedUID}
+          onValueChange={(value) => setSelectedUID(value)}
+        >
+          <Picker.Item label="Select UID" value="" />
+          {entries.map((item) => (
+            <Picker.Item key={item.uid} label={item.uid} value={item.uid} />
+          ))}
+        </Picker>
+      </View>
+
+      {selectedEntry && (
+        <View style={styles.details}>
+          <Text>Stock Type: {selectedEntry.stockType}</Text>
+          <Text>Item: {selectedEntry.vegetable}</Text>
+          <Text>Quantity: {selectedEntry.quantity} kg</Text>
+          <Text>Shelf Life: {selectedEntry.shelfLife} days</Text>
+        </View>
+      )}
+
+      <Text style={styles.label}>Today's Sold Quantity (kg)</Text>
+      <TextInput
+        keyboardType="numeric"
+        value={dailySold}
+        onChangeText={setDailySold}
+        placeholder="e.g., 30"
+        style={styles.input}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleUpdate}>
+        <Text style={styles.buttonText}>Submit & Predict</Text>
+      </TouchableOpacity>
+
+      {/* Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Prediction Result</Text>
+            <Text style={styles.modalText}>Predicted Waste: {predictedWaste} kg</Text>
+            {restockRecommendation ? (
+              <Text style={styles.modalText}>{restockRecommendation}</Text>
+            ) : (
+              <Text style={styles.modalText}>You're within average limits ✅</Text>
+            )}
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 20 }]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { padding: 20, backgroundColor: '#fff', flexGrow: 1 },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
+  label: { marginTop: 10, fontWeight: '600' },
+  input: {
+    backgroundColor: '#f4f4f4', borderRadius: 6, padding: 10, marginTop: 5
+  },
+  picker: {
+    backgroundColor: '#f4f4f4', borderRadius: 6, marginTop: 5
+  },
+  button: {
+    backgroundColor: '#f97316', padding: 12, borderRadius: 8, marginTop: 20
+  },
+  buttonText: {
+    color: '#fff', fontWeight: 'bold', textAlign: 'center'
+  },
+  details: {
+    backgroundColor: '#eef1f6', padding: 10, borderRadius: 6, marginTop: 10
+  },
+  modalOverlay: {
+    flex: 1, justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContent: {
+    width: '80%', backgroundColor: '#fff', borderRadius: 10,
+    padding: 20, alignItems: 'center'
+  },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  modalText: { fontSize: 16, marginTop: 5, textAlign: 'center' }
+});
