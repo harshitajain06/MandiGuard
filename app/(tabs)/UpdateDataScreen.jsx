@@ -4,8 +4,8 @@ import {
   StyleSheet, ScrollView
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { db, dailyDataRef } from '../../config/firebase';
-import { getDocs, doc, updateDoc } from 'firebase/firestore';
+import { db, dailyDataRef, auth } from '../../config/firebase';
+import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
 
 export default function UpdateStockScreen() {
   const [entries, setEntries] = useState([]);
@@ -18,13 +18,19 @@ export default function UpdateStockScreen() {
 
   useEffect(() => {
     const fetchEntries = async () => {
-      const snapshot = await getDocs(dailyDataRef);
+      if (!auth.currentUser) return;
+
+      // 🔑 Fetch only the current user’s entries
+      const q = query(dailyDataRef, where("userId", "==", auth.currentUser.uid));
+      const snapshot = await getDocs(q);
+
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       setEntries(data);
     };
+
     fetchEntries();
   }, []);
 
@@ -51,19 +57,22 @@ export default function UpdateStockScreen() {
     );
 
     const wasteUnits = Math.max(0, (averageStock - dailySold) * remainingDays);
-    const wastePercent = (wasteUnits / quantity) * 100;
 
     let recommendation = '';
     if (dailySold > averageStock) {
       const restock = Math.round((dailySold - averageStock) * remainingDays);
       recommendation = `You may need to restock approx. ${restock} kg based on recent sales.`;
+    } else if (dailySold < averageStock  && wasteUnits > 0) {
+      recommendation = `❌ Sales are underperforming. 
+      Current sales (${dailySold} kg) are below the expected average of ${averageStock.toFixed(1)} kg/day. 
+      Risk of higher waste: approx. ${wasteUnits.toFixed(1)} kg may be wasted if sales do not improve.`;
     }
 
     setPredictedWaste(wasteUnits.toFixed(1));
     setRestockRecommendation(recommendation);
     setModalVisible(true);
 
-    // Update Firestore with the new sold quantity
+    // 🔄 Update Firestore
     const docRef = doc(db, 'dailyData', selectedEntry.id);
     await updateDoc(docRef, {
       lastSold: parseFloat(dailySold),

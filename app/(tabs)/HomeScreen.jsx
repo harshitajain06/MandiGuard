@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
-import { dailyDataRef } from '../../config/firebase';
-import { getDocs } from 'firebase/firestore';
+import { dailyDataRef, auth } from '../../config/firebase';
+import { getDocs, query, where } from 'firebase/firestore';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 
 export default function DashboardScreen() {
@@ -15,10 +15,16 @@ export default function DashboardScreen() {
   const [wasteByCategory, setWasteByCategory] = useState([]);
 
   const chartColors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6'];
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
   useEffect(() => {
     const fetchData = async () => {
-      const snapshot = await getDocs(dailyDataRef);
+      if (!auth.currentUser) return;
+
+      // 🔑 Fetch only current user's data
+      const q = query(dailyDataRef, where("userId", "==", auth.currentUser.uid));
+      const snapshot = await getDocs(q);
+
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -28,6 +34,7 @@ export default function DashboardScreen() {
       let wasteThisMonth = 0;
       let wasteLastMonth = 0;
       let categoryWaste = {};
+      let monthlyWasteMap = {}; // { "2025-01": wasteValue }
 
       const now = new Date();
       const currentMonth = now.getMonth();
@@ -51,6 +58,15 @@ export default function DashboardScreen() {
         const wasteUnits = Math.max(0, (averageStock - (lastSold || 0)) * remainingDays);
 
         const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+        const monthKey = `${createdDate.getFullYear()}-${createdDate.getMonth()}`;
+
+        // group waste by month
+        if (!monthlyWasteMap[monthKey]) {
+          monthlyWasteMap[monthKey] = 0;
+        }
+        monthlyWasteMap[monthKey] += wasteUnits;
+
+        // current vs last month waste
         if (createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear) {
           wasteThisMonth += wasteUnits;
         } else if (
@@ -60,6 +76,7 @@ export default function DashboardScreen() {
           wasteLastMonth += wasteUnits;
         }
 
+        // category waste
         if (!categoryWaste[stockType]) {
           categoryWaste[stockType] = 0;
         }
@@ -80,13 +97,18 @@ export default function DashboardScreen() {
         efficiencyRate,
       });
 
-      // Example monthly waste data
-      setMonthlyWaste([
-        { month: 'Jan', waste: 30 },
-        { month: 'Feb', waste: 20 },
-        { month: 'Mar', waste: 15 },
-        { month: 'Apr', waste: wasteThisMonth },
-      ]);
+      // Convert monthlyWasteMap → array sorted by date
+      const monthlyWasteArray = Object.keys(monthlyWasteMap)
+        .sort((a, b) => new Date(a.split("-")[0], a.split("-")[1]) - new Date(b.split("-")[0], b.split("-")[1]))
+        .map(key => {
+          const [year, month] = key.split("-");
+          return {
+            month: `${monthNames[parseInt(month)]} ${year}`,
+            waste: monthlyWasteMap[key].toFixed(1),
+          };
+        });
+
+      setMonthlyWaste(monthlyWasteArray);
 
       setWasteByCategory(
         Object.keys(categoryWaste).map((key, index) => ({
@@ -120,30 +142,38 @@ export default function DashboardScreen() {
 
       {/* Bar Chart */}
       <Text style={styles.sectionTitle}>Monthly Waste Trends</Text>
-      <BarChart
-        data={{
-          labels: monthlyWaste.map(item => item.month),
-          datasets: [{ data: monthlyWaste.map(item => item.waste) }],
-        }}
-        width={Dimensions.get('window').width - 20}
-        height={220}
-        yAxisSuffix="kg"
-        chartConfig={chartConfig}
-        style={styles.chart}
-      />
+      {monthlyWaste.length > 0 ? (
+        <BarChart
+          data={{
+            labels: monthlyWaste.map(item => item.month),
+            datasets: [{ data: monthlyWaste.map(item => parseFloat(item.waste)) }],
+          }}
+          width={Dimensions.get('window').width - 20}
+          height={220}
+          yAxisSuffix="kg"
+          chartConfig={chartConfig}
+          style={styles.chart}
+        />
+      ) : (
+        <Text style={{ textAlign: "center", marginTop: 10 }}>No data available</Text>
+      )}
 
       {/* Pie Chart */}
       <Text style={styles.sectionTitle}>Waste by Category</Text>
-      <PieChart
-        data={wasteByCategory}
-        width={Dimensions.get('window').width - 20}
-        height={220}
-        chartConfig={chartConfig}
-        accessor="population"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute
-      />
+      {wasteByCategory.length > 0 ? (
+        <PieChart
+          data={wasteByCategory}
+          width={Dimensions.get('window').width - 20}
+          height={220}
+          chartConfig={chartConfig}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute
+        />
+      ) : (
+        <Text style={{ textAlign: "center", marginTop: 10 }}>No data available</Text>
+      )}
     </ScrollView>
   );
 }

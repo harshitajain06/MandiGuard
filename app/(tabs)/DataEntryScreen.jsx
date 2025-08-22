@@ -4,9 +4,8 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { db, dailyDataRef } from '../../config/firebase';
-import { addDoc, getDocs } from 'firebase/firestore';
-// import WasteCard from './DataEntryScreen';
+import { db, dailyDataRef, auth } from '../../config/firebase';
+import { addDoc, getDocs, query, where } from 'firebase/firestore';
 
 export default function HomeScreen() {
   const [date, setDate] = useState(new Date());
@@ -16,26 +15,35 @@ export default function HomeScreen() {
   const [quantity, setQuantity] = useState("");
   const [shelfLife, setShelfLife] = useState("");
 
-  // Generate unique UID: stockType-date-XX
+  const user = auth.currentUser; // Logged-in user
+
+  // Generate unique UID: userId-stockType-date-XX
   const generateUID = async () => {
     const formattedDate = date.toISOString().split('T')[0];
-    const snapshot = await getDocs(dailyDataRef);
-    const entriesForToday = snapshot.docs.filter(doc => {
-      const data = doc.data();
-      return data.date === formattedDate && data.stockType === stockType;
-    });
-    const count = entriesForToday.length + 1;
+
+    // Only fetch current user's entries for today & stockType
+    const q = query(
+      dailyDataRef,
+      where("userId", "==", user.uid),
+      where("date", "==", formattedDate),
+      where("stockType", "==", stockType)
+    );
+
+    const snapshot = await getDocs(q);
+    const count = snapshot.docs.length + 1;
     const suffix = count.toString().padStart(2, '0');
-    return `${stockType}-${formattedDate}-${suffix}`;
+    return `${user.uid}-${stockType}-${formattedDate}-${suffix}`;
   };
 
   const handleSubmit = async () => {
     if (!quantity || !shelfLife) return alert("Please fill all fields");
+    if (!user) return alert("User not logged in");
 
     try {
       const uid = await generateUID();
       await addDoc(dailyDataRef, {
         uid,
+        userId: user.uid,   // 🔑 store userId
         date: date.toISOString().split('T')[0],
         stockType,
         vegetable,
@@ -111,8 +119,6 @@ export default function HomeScreen() {
           <Text style={styles.submitText}>Submit</Text>
         </TouchableOpacity>
       </View>
-
-      {/* <WasteCard /> */}
     </View>
   );
 }
