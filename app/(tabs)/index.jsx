@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert
+  StyleSheet, ActivityIndicator, Alert, Image
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
@@ -71,11 +71,17 @@ export default function AuthPage() {
       ]}
       keyboardShouldPersistTaps="handled"
     >
+      {/* Logo Section */}
       <View style={styles.iconContainer}>
         <View style={styles.iconCircle}>
-          <Text style={styles.icon}>🛡️</Text>
+          <Image
+            source={require('../../assets/images/logoM.jpg')} // ✅ your logo image
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
       </View>
+
       <Text style={[styles.title, isDarkMode && { color: '#fff' }]}>
         Welcome to MandiGuard
       </Text>
@@ -183,7 +189,6 @@ function OAuthButtons() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     padding: 24,
@@ -197,12 +202,15 @@ const styles = StyleSheet.create({
   },
   iconCircle: {
     backgroundColor: '#e6f0ff',
-    padding: 12,
+    padding: 16,
     borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  icon: {
-    fontSize: 32,
-    color: '#007bff',
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
   },
   title: {
     fontSize: 24,
@@ -210,7 +218,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
   },
-  
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
