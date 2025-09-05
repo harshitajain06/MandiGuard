@@ -1,11 +1,14 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
+import { addDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, Platform
+    ScrollView,
+    StyleSheet,
+    Text, TextInput, TouchableOpacity,
+    View
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { db, dailyDataRef, auth } from '../../config/firebase';
-import { addDoc, getDocs, query, where } from 'firebase/firestore';
+import { auth, dailyDataRef } from '../../config/firebase';
 
 export default function HomeScreen() {
   const [date, setDate] = useState(new Date());
@@ -58,7 +61,11 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={true}
+    >
       <Text style={styles.heading}>Reduce Surplus Food Waste</Text>
 
       <View style={styles.form}>
@@ -119,12 +126,13 @@ export default function HomeScreen() {
           <Text style={styles.submitText}>Submit</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#fff" },
+  scrollContent: { padding: 20, flexGrow: 1 },
   heading: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
   form: { backgroundColor: "#f97316", borderRadius: 10, padding: 15 },
   label: { color: "#fff", marginTop: 10 },

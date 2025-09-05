@@ -1,11 +1,15 @@
+import { Picker } from '@react-native-picker/picker';
+import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Modal,
-  StyleSheet, ScrollView
+  Modal,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { db, dailyDataRef, auth } from '../../config/firebase';
-import { getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
+import { auth, dailyDataRef, db } from '../../config/firebase';
 
 export default function UpdateStockScreen() {
   const [entries, setEntries] = useState([]);
@@ -15,24 +19,31 @@ export default function UpdateStockScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [predictedWaste, setPredictedWaste] = useState(null);
   const [restockRecommendation, setRestockRecommendation] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchEntries = async () => {
+    if (!auth.currentUser) return;
+
+    // 🔑 Fetch only the current user's entries
+    const q = query(dailyDataRef, where("userId", "==", auth.currentUser.uid));
+    const snapshot = await getDocs(q);
+
+    const data = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setEntries(data);
+  };
 
   useEffect(() => {
-    const fetchEntries = async () => {
-      if (!auth.currentUser) return;
-
-      // 🔑 Fetch only the current user’s entries
-      const q = query(dailyDataRef, where("userId", "==", auth.currentUser.uid));
-      const snapshot = await getDocs(q);
-
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setEntries(data);
-    };
-
     fetchEntries();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchEntries();
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     const match = entries.find(entry => entry.uid === selectedUID);
@@ -81,8 +92,20 @@ export default function UpdateStockScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Update Daily Stock</Text>
+    <ScrollView 
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      showsVerticalScrollIndicator={true}
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>Update Daily Stock</Text>
+        <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
+          <Text style={styles.reloadButtonText}>🔄 Reload</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Select UID</Text>
       <View style={styles.picker}>
@@ -149,8 +172,26 @@ export default function UpdateStockScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: '#fff', flexGrow: 1 },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
+  scrollContainer: { flex: 1, backgroundColor: '#fff' },
+  container: { padding: 20, flexGrow: 1 },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
+  title: { fontSize: 20, fontWeight: 'bold' },
+  reloadButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6
+  },
+  reloadButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14
+  },
   label: { marginTop: 10, fontWeight: '600' },
   input: {
     backgroundColor: '#f4f4f4', borderRadius: 6, padding: 10, marginTop: 5
