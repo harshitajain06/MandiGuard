@@ -6,6 +6,7 @@ import HomeScreen from "./HomeScreen";
 import DataEntryScreen from "./DataEntryScreen";
 import UpdateDataScreen from "./UpdateDataScreen";
 import LoginRegister from './index';
+import DashboardScreen from "./DashboardScreen";
 import { Colors } from "../../constants/Colors";
 import { useColorScheme } from "../../hooks/useColorScheme";
 import { Ionicons } from "@expo/vector-icons";
@@ -42,6 +43,8 @@ const BottomTabs = () => {
             iconName = focused ? "add-circle" : "add-circle-outline";
           } else if (route.name === "Update Data") {
             iconName = focused ? "create" : "create-outline";
+          } else if (route.name === "Dashboard") {
+            iconName = focused ? "grid" : "grid-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -49,6 +52,7 @@ const BottomTabs = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen
         name="Update Data"
         component={UpdateDataScreen}
