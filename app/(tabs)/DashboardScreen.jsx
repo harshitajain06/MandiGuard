@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   image: {
-    width: 180,
-    height: 180,
+    width: 250,
+    height: 250,
     resizeMode: "contain",
   },
   card: {
