@@ -51,8 +51,9 @@ const BottomTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Dashboard" component={DashboardScreen} />
+      <Tab.Screen name="Home" component={DashboardScreen} />
+      <Tab.Screen name="Dashboard" component={HomeScreen} />
+      
       <Tab.Screen
         name="Update Data"
         component={UpdateDataScreen}
@@ -84,7 +85,7 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'Home' }} />
+      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'MandiGuard' }} />
       
       <Drawer.Screen
         name="Logout"
