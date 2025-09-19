@@ -103,7 +103,7 @@ export default function UpdateStockScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Update Daily Stock</Text>
         <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
-          <Text style={styles.reloadButtonText}>🔄 Reload</Text>
+          <Text style={styles.reloadButtonText}>Reload</Text>
         </TouchableOpacity>
       </View>
 
