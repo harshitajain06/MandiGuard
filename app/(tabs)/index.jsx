@@ -1,4 +1,3 @@
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
@@ -16,8 +15,6 @@ import { auth } from '../../config/firebase';
 
 export default function AuthPage() {
   const navigation = useNavigation();
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
   const screenWidth = Dimensions.get('window').width;
   const isWeb = Platform.OS === 'web';
 
@@ -197,14 +194,11 @@ export default function AuthPage() {
         </View>
       ) : null}
 
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        isDarkMode && { backgroundColor: '#121212' },
-      ]}
-      keyboardShouldPersistTaps="handled"
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
         style={styles.scrollView}
-    >
+      >
       {/* Logo Section */}
       <View style={styles.iconContainer}>
         <View style={styles.iconCircle}>
@@ -216,7 +210,7 @@ export default function AuthPage() {
         </View>
       </View>
 
-      <Text style={[styles.title, isDarkMode && { color: '#fff' }]}>
+      <Text style={styles.title}>
         Welcome to MandiGuard
       </Text>
 

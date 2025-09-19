@@ -2,12 +2,12 @@ import { Picker } from '@react-native-picker/picker';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
-  Modal,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text, TextInput, TouchableOpacity,
-  View
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text, TextInput, TouchableOpacity,
+    View
 } from 'react-native';
 import { auth, dailyDataRef, db } from '../../config/firebase';
 
@@ -107,40 +107,43 @@ export default function UpdateStockScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Select UID</Text>
-      <View style={styles.picker}>
-        <Picker
-          selectedValue={selectedUID}
-          onValueChange={(value) => setSelectedUID(value)}
-        >
-          <Picker.Item label="Select UID" value="" />
-          {entries.map((item) => (
-            <Picker.Item key={item.uid} label={item.uid} value={item.uid} />
-          ))}
-        </Picker>
-      </View>
-
-      {selectedEntry && (
-        <View style={styles.details}>
-          <Text>Stock Type: {selectedEntry.stockType}</Text>
-          <Text>Item: {selectedEntry.vegetable}</Text>
-          <Text>Quantity: {selectedEntry.quantity} kg</Text>
-          <Text>Shelf Life: {selectedEntry.shelfLife} days</Text>
+      {/* Orange Box Container */}
+      <View style={styles.orangeBox}>
+        <Text style={styles.label}>Select UID</Text>
+        <View style={styles.picker}>
+          <Picker
+            selectedValue={selectedUID}
+            onValueChange={(value) => setSelectedUID(value)}
+          >
+            <Picker.Item label="Select UID" value="" />
+            {entries.map((item) => (
+              <Picker.Item key={item.uid} label={item.uid} value={item.uid} />
+            ))}
+          </Picker>
         </View>
-      )}
 
-      <Text style={styles.label}>Today's Sold Quantity (kg)</Text>
-      <TextInput
-        keyboardType="numeric"
-        value={dailySold}
-        onChangeText={setDailySold}
-        placeholder="e.g., 30"
-        style={styles.input}
-      />
+        {selectedEntry && (
+          <View style={styles.details}>
+            <Text style={styles.detailText}>Stock Type: {selectedEntry.stockType}</Text>
+            <Text style={styles.detailText}>Item: {selectedEntry.vegetable}</Text>
+            <Text style={styles.detailText}>Quantity: {selectedEntry.quantity} kg</Text>
+            <Text style={styles.detailText}>Shelf Life: {selectedEntry.shelfLife} days</Text>
+          </View>
+        )}
 
-      <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-        <Text style={styles.buttonText}>Submit & Predict</Text>
-      </TouchableOpacity>
+        <Text style={styles.label}>Today's Sold Quantity (kg)</Text>
+        <TextInput
+          keyboardType="numeric"
+          value={dailySold}
+          onChangeText={setDailySold}
+          placeholder="e.g., 30"
+          style={styles.input}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleUpdate}>
+          <Text style={styles.buttonText}>Submit & Predict</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Modal */}
       <Modal
@@ -192,21 +195,57 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14
   },
-  label: { marginTop: 10, fontWeight: '600' },
+  orangeBox: {
+    backgroundColor: '#f97316',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 10,
+  },
+  label: { 
+    marginTop: 10, 
+    fontWeight: '600',
+    color: '#fff',
+    fontSize: 16
+  },
   input: {
-    backgroundColor: '#f4f4f4', borderRadius: 6, padding: 10, marginTop: 5
+    backgroundColor: '#fff', 
+    borderRadius: 6, 
+    padding: 12, 
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
   },
   picker: {
-    backgroundColor: '#f4f4f4', borderRadius: 6, marginTop: 5
+    backgroundColor: '#fff', 
+    borderRadius: 6, 
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
   },
   button: {
-    backgroundColor: '#f97316', padding: 12, borderRadius: 8, marginTop: 20
+    backgroundColor: '#fff', 
+    padding: 14, 
+    borderRadius: 8, 
+    marginTop: 20
   },
   buttonText: {
-    color: '#fff', fontWeight: 'bold', textAlign: 'center'
+    color: '#f97316', 
+    fontWeight: 'bold', 
+    textAlign: 'center',
+    fontSize: 16
   },
   details: {
-    backgroundColor: '#eef1f6', padding: 10, borderRadius: 6, marginTop: 10
+    backgroundColor: '#fff', 
+    padding: 12, 
+    borderRadius: 6, 
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
+  },
+  detailText: {
+    color: '#333',
+    fontSize: 14,
+    marginBottom: 4
   },
   modalOverlay: {
     flex: 1, justifyContent: 'center', alignItems: 'center',
