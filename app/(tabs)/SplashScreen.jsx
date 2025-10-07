@@ -51,8 +51,13 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background Gradient Effect */}
-      <View style={styles.backgroundGradient} />
+      {/* Background Image */}
+      <Image 
+        source={require('../../assets/images/mandi.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      <View style={styles.backgroundOverlay} />
       
       {/* Main Content */}
       <View style={styles.content}>
@@ -166,16 +171,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
   },
-  backgroundGradient: {
+  backgroundImage: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    ...(Platform.OS === 'web' && {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    }),
+    width: '100%',
+    height: '100%',
+  },
+  backgroundOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   content: {
     flex: 1,
@@ -216,16 +227,22 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: Platform.OS === 'web' ? 48 : 36,
     fontWeight: 'bold',
-    color: '#1e293b',
+    color: '#ffffff',
     marginBottom: 12,
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   appSubtitle: {
     fontSize: Platform.OS === 'web' ? 18 : 16,
-    color: '#64748b',
+    color: '#f1f5f9',
     textAlign: 'center',
     lineHeight: Platform.OS === 'web' ? 26 : 24,
     maxWidth: Platform.OS === 'web' ? 500 : '100%',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   featuresContainer: {
     flexDirection: 'row',
@@ -248,9 +265,12 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#f1f5f9',
     textAlign: 'center',
     fontWeight: '500',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   buttonContainer: {
     width: '100%',
@@ -298,8 +318,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: '#e2e8f0',
     textAlign: 'center',
     fontStyle: 'italic',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
