@@ -10,6 +10,10 @@ export default function DashboardScreen() {
     wasteThisMonth: 0,
     wasteReduction: 0,
     efficiencyRate: 0,
+    totalProfit: 0,
+    totalRevenue: 0,
+    totalCosts: 0,
+    wasteReduced: 0,
   });
   const [monthlyWaste, setMonthlyWaste] = useState([]);
   const [wasteByCategory, setWasteByCategory] = useState([]);
@@ -35,13 +39,17 @@ export default function DashboardScreen() {
     let wasteLastMonth = 0;
     let categoryWaste = {};
     let monthlyWasteMap = {}; // { "2025-01": wasteValue }
+    let totalProfit = 0;
+    let totalRevenue = 0;
+    let totalCosts = 0;
+    let totalWasteReduced = 0;
 
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
     data.forEach(entry => {
-      const { quantity, shelfLife, createdAt, lastSold, stockType } = entry;
+      const { quantity, shelfLife, createdAt, lastSold, stockType, purchasePrice, sellingPrice, profitLoss, wasteReduction } = entry;
       totalInventory += quantity;
 
       const averageStock = quantity / shelfLife;
@@ -81,6 +89,21 @@ export default function DashboardScreen() {
         categoryWaste[stockType] = 0;
       }
       categoryWaste[stockType] += wasteUnits;
+
+      // Calculate financial metrics
+      if (profitLoss !== undefined) {
+        totalProfit += profitLoss;
+      }
+      
+      if (purchasePrice && sellingPrice) {
+        const soldUnits = Math.min(lastSold || 0, averageStock * remainingDays);
+        totalRevenue += soldUnits * sellingPrice;
+        totalCosts += quantity * purchasePrice;
+      }
+
+      if (wasteReduction !== undefined) {
+        totalWasteReduced += wasteReduction;
+      }
     });
 
     const efficiencyRate =
@@ -95,6 +118,10 @@ export default function DashboardScreen() {
       wasteThisMonth: wasteThisMonth.toFixed(1),
       wasteReduction,
       efficiencyRate,
+      totalProfit: totalProfit.toFixed(2),
+      totalRevenue: totalRevenue.toFixed(2),
+      totalCosts: totalCosts.toFixed(2),
+      wasteReduced: totalWasteReduced.toFixed(1),
     });
 
     // Convert monthlyWasteMap → array sorted by date
@@ -157,6 +184,22 @@ export default function DashboardScreen() {
         <StatCard title="Efficiency Rate" value={`${stats.efficiencyRate}%`} />
       </View>
 
+      {/* Financial Stats Row */}
+      <View style={styles.statsRow}>
+        <StatCard 
+          title="Total Profit" 
+          value={`₹${stats.totalProfit}`} 
+          color={parseFloat(stats.totalProfit) >= 0 ? '#10B981' : '#EF4444'}
+        />
+        <StatCard title="Waste Reduced" value={`${stats.wasteReduced} kg`} color="#10B981" />
+      </View>
+
+      {/* Revenue vs Costs Row */}
+      <View style={styles.statsRow}>
+        <StatCard title="Total Revenue" value={`₹${stats.totalRevenue}`} color="#3B82F6" />
+        <StatCard title="Total Costs" value={`₹${stats.totalCosts}`} color="#F59E0B" />
+      </View>
+
       {/* Bar Chart */}
       <Text style={styles.sectionTitle}>Monthly Waste Trends</Text>
       {monthlyWaste.length > 0 ? (
@@ -195,11 +238,11 @@ export default function DashboardScreen() {
   );
 }
 
-function StatCard({ title, value }) {
+function StatCard({ title, value, color = '#000' }) {
   return (
     <View style={styles.statCard}>
       <Text style={styles.statTitle}>{title}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
     </View>
   );
 }

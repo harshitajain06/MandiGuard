@@ -39,9 +39,9 @@ const BottomTabs = () => {
 
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
-          } else if (route.name === "Data Entry") {
+          } else if (route.name === "Stock In") {
             iconName = focused ? "add-circle" : "add-circle-outline";
-          } else if (route.name === "Update Data") {
+          } else if (route.name === "Stock Out") {
             iconName = focused ? "create" : "create-outline";
           } else if (route.name === "Dashboard") {
             iconName = focused ? "grid" : "grid-outline";
@@ -55,14 +55,14 @@ const BottomTabs = () => {
       <Tab.Screen name="Dashboard" component={HomeScreen} />
       
       <Tab.Screen
-        name="Update Data"
+        name="Stock Out"
         component={UpdateDataScreen}
-        options={{ title: "Update Data" }}
+        options={{ title: "Stock Out" }}
       />
       <Tab.Screen
-        name="Data Entry"
+        name="Stock In"
         component={DataEntryScreen}
-        options={{ title: "Data Entry" }}
+        options={{ title: "Stock In" }}
       />
     </Tab.Navigator>
   );

@@ -17,6 +17,7 @@ export default function HomeScreen() {
   const [vegetable, setVegetable] = useState("Tomatoes");
   const [quantity, setQuantity] = useState("");
   const [shelfLife, setShelfLife] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
 
   const user = auth.currentUser; // Logged-in user
 
@@ -39,7 +40,7 @@ export default function HomeScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!quantity || !shelfLife) return alert("Please fill all fields");
+    if (!quantity || !shelfLife || !purchasePrice) return alert("Please fill all fields");
     if (!user) return alert("User not logged in");
 
     try {
@@ -52,6 +53,7 @@ export default function HomeScreen() {
         vegetable,
         quantity: parseFloat(quantity),
         shelfLife: parseInt(shelfLife),
+        purchasePrice: parseFloat(purchasePrice),
         createdAt: new Date()
       });
       alert(`Data saved! UID: ${uid}`);
@@ -119,6 +121,15 @@ export default function HomeScreen() {
           value={shelfLife}
           onChangeText={setShelfLife}
           placeholder="e.g., 3"
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Purchase Price (₹ per kg)</Text>
+        <TextInput
+          keyboardType="numeric"
+          value={purchasePrice}
+          onChangeText={setPurchasePrice}
+          placeholder="e.g., 25"
           style={styles.input}
         />
 
