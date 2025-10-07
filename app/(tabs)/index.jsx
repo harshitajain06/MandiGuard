@@ -5,7 +5,9 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import {
   ActivityIndicator,
   Dimensions,
-  Image, Platform,
+  Image,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text, TextInput, TouchableOpacity,
@@ -34,6 +36,7 @@ export default function AuthPage() {
 
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success'); // 'success', 'error', 'info'
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -339,34 +342,91 @@ export default function AuthPage() {
         </View>
       )}
 
-      {/* OAuth Buttons */}
-      <OAuthButtons />
 
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => setPrivacyModalVisible(true)}>
         <Text style={styles.privacyPolicy}>Privacy Policy.</Text>
       </TouchableOpacity>
       </ScrollView>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        visible={privacyModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setPrivacyModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Privacy Policy</Text>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setPrivacyModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>×</Text>
+              </TouchableOpacity>
+    </View>
+            
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={true}>
+              <Text style={styles.privacySectionTitle}>1. Information We Collect</Text>
+              <Text style={styles.privacyText}>
+                We collect information you provide directly to us, such as when you create an account, 
+                use our services, or contact us for support. This may include:
+              </Text>
+              <Text style={styles.privacyBullet}>• Name and email address</Text>
+              <Text style={styles.privacyBullet}>• Stock and inventory data</Text>
+              <Text style={styles.privacyBullet}>• Sales and waste prediction data</Text>
+              <Text style={styles.privacyBullet}>• Usage analytics and app interactions</Text>
+
+              <Text style={styles.privacySectionTitle}>2. How We Use Your Information</Text>
+              <Text style={styles.privacyText}>
+                We use the information we collect to:
+              </Text>
+              <Text style={styles.privacyBullet}>• Provide and improve our waste management services</Text>
+              <Text style={styles.privacyBullet}>• Generate accurate predictions and analytics</Text>
+              <Text style={styles.privacyBullet}>• Send you important updates about the service</Text>
+              <Text style={styles.privacyBullet}>• Provide customer support</Text>
+
+              <Text style={styles.privacySectionTitle}>3. Data Security</Text>
+              <Text style={styles.privacyText}>
+                We implement appropriate security measures to protect your personal information against 
+                unauthorized access, alteration, disclosure, or destruction. Your data is encrypted 
+                and stored securely using industry-standard practices.
+              </Text>
+
+              <Text style={styles.privacySectionTitle}>4. Data Sharing</Text>
+              <Text style={styles.privacyText}>
+                We do not sell, trade, or otherwise transfer your personal information to third parties 
+                without your consent, except as described in this policy or as required by law.
+              </Text>
+
+              <Text style={styles.privacySectionTitle}>5. Your Rights</Text>
+              <Text style={styles.privacyText}>
+                You have the right to:
+              </Text>
+              <Text style={styles.privacyBullet}>• Access your personal data</Text>
+              <Text style={styles.privacyBullet}>• Correct inaccurate information</Text>
+              <Text style={styles.privacyBullet}>• Delete your account and data</Text>
+              <Text style={styles.privacyBullet}>• Opt out of certain data processing</Text>
+
+              <Text style={styles.privacySectionTitle}>6. Contact Us</Text>
+              <Text style={styles.privacyText}>
+                If you have any questions about this Privacy Policy, please contact us at:
+              </Text>
+              <Text style={styles.privacyContact}>Email: privacy@mandiguard.com</Text>
+              <Text style={styles.privacyContact}>Phone: +1 (555) 123-4567</Text>
+
+              <Text style={styles.privacyLastUpdated}>
+                Last updated: {new Date().toLocaleDateString()}
+              </Text>
+            </ScrollView>
+      </View>
+      </View>
+      </Modal>
     </View>
   );
 }
 
-function OAuthButtons() {
-  return (
-    <View style={{ marginTop: 16 }}>
-      <View style={{ alignItems: 'center', marginBottom: 12 }}>
-        <Text style={{ fontSize: 12, color: '#6c757d' }}>Or continue with</Text>
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
-        <TouchableOpacity style={styles.oauthButton} onPress={() => alert('Facebook login coming soon')}>
-          <Text style={styles.oauthButtonText}>Facebook</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.oauthButton} onPress={() => alert('Google login coming soon')}>
-          <Text style={styles.oauthButtonText}>Google</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   pageContainer: {
@@ -380,12 +440,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    padding: Platform.OS === 'web' ? 40 : 24,
-    paddingTop: Platform.OS === 'web' ? 80 : 60,
+    padding: Platform.OS === 'web' ? 24 : 24,
+    paddingTop: Platform.OS === 'web' ? 20 : 60,
     backgroundColor: '#fff',
     minHeight: Platform.OS === 'web' ? '100vh' : '100%',
     ...(Platform.OS === 'web' && {
-      maxWidth: 500,
+      maxWidth: 420,
       alignSelf: 'center',
       width: '100%',
     })
@@ -428,36 +488,36 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: Platform.OS === 'web' ? 12 : 16,
   },
   iconCircle: {
     backgroundColor: '#e6f0ff',
-    padding: 16,
+    padding: Platform.OS === 'web' ? 12 : 16,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
+    width: Platform.OS === 'web' ? 60 : 80,
+    height: Platform.OS === 'web' ? 60 : 80,
+    borderRadius: Platform.OS === 'web' ? 15 : 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: Platform.OS === 'web' ? 20 : 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: Platform.OS === 'web' ? 20 : 30,
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: Platform.OS === 'web' ? 16 : 24,
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: Platform.OS === 'web' ? 8 : 12,
     alignItems: 'center',
     borderRadius: 12,
   },
@@ -465,7 +525,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e6f0ff',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'web' ? 14 : 16,
     color: '#6c757d',
     fontWeight: '600',
   },
@@ -478,16 +538,16 @@ const styles = StyleSheet.create({
     color: '#212529',
   },
   form: {
-    marginBottom: 30,
+    marginBottom: Platform.OS === 'web' ? 20 : 30,
   },
   input: {
     backgroundColor: '#fff',
-    padding: Platform.OS === 'web' ? 16 : 12,
+    padding: Platform.OS === 'web' ? 12 : 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: Platform.OS === 'web' ? 8 : 12,
     borderWidth: 1,
     borderColor: '#ced4da',
-    fontSize: Platform.OS === 'web' ? 16 : 16,
+    fontSize: Platform.OS === 'web' ? 14 : 16,
     ...(Platform.OS === 'web' && {
       outline: 'none',
       transition: 'border-color 0.2s, box-shadow 0.2s',
@@ -523,7 +583,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#cce0ff',
-    padding: Platform.OS === 'web' ? 16 : 14,
+    padding: Platform.OS === 'web' ? 12 : 14,
     borderRadius: 8,
     alignItems: 'center',
     ...(Platform.OS === 'web' && {
@@ -541,34 +601,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#007bff',
     fontWeight: 'bold',
-    fontSize: Platform.OS === 'web' ? 16 : 16,
-  },
-  oauthButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-    borderRadius: 8,
-    paddingVertical: Platform.OS === 'web' ? 14 : 12,
-    paddingHorizontal: Platform.OS === 'web' ? 16 : 10,
-    flex: 1,
-    alignItems: 'center',
-    ...(Platform.OS === 'web' && {
-      cursor: 'pointer',
-      transition: 'background-color 0.2s, border-color 0.2s, transform 0.1s',
-      ':hover': {
-        backgroundColor: '#f8f9fa',
-        borderColor: '#adb5bd',
-        transform: 'translateY(-1px)',
-      },
-      ':active': {
-        transform: 'translateY(0)',
-      }
-    })
-  },
-  oauthButtonText: {
-    fontSize: Platform.OS === 'web' ? 14 : 14,
-    fontWeight: '600',
-    color: '#343a40',
+    fontSize: Platform.OS === 'web' ? 14 : 16,
   },
   updateText: {
     marginTop: 16,
@@ -582,5 +615,85 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#007bff',
     textDecorationLine: 'underline',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: Platform.OS === 'web' ? 600 : '100%',
+    maxHeight: '80%',
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+    }),
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#212529',
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 20,
+    color: '#6c757d',
+    fontWeight: 'bold',
+  },
+  modalBody: {
+    padding: 20,
+    maxHeight: 400,
+  },
+  privacySectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  privacyText: {
+    fontSize: 14,
+    color: '#495057',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  privacyBullet: {
+    fontSize: 14,
+    color: '#495057',
+    marginLeft: 16,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
+  privacyContact: {
+    fontSize: 14,
+    color: '#007bff',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  privacyLastUpdated: {
+    fontSize: 12,
+    color: '#6c757d',
+    fontStyle: 'italic',
+    marginTop: 16,
+    textAlign: 'center',
   },
 });
