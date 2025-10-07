@@ -14,9 +14,12 @@ import {
   View
 } from 'react-native';
 import { auth } from '../../config/firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function AuthPage() {
   const navigation = useNavigation();
+  const { language } = useLanguage();
   const screenWidth = Dimensions.get('window').width;
   const isWeb = Platform.OS === 'web';
 
@@ -214,7 +217,7 @@ export default function AuthPage() {
       </View>
 
       <Text style={styles.title}>
-        Welcome to MandiGuard
+        {getTranslation('authTitle', language)}
       </Text>
 
       {/* Tabs */}
@@ -223,20 +226,20 @@ export default function AuthPage() {
           onPress={() => setMode('login')}
           style={[styles.tab, mode === 'login' && styles.activeTabBackground]}
         >
-          <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>Login</Text>
+          <Text style={[styles.tabText, mode === 'login' && styles.activeTabText]}>{getTranslation('authLogin', language)}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setMode('register')}
           style={[styles.tab, mode === 'register' && styles.activeTabBackground]}
         >
-          <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>Register</Text>
+          <Text style={[styles.tabText, mode === 'register' && styles.activeTabText]}>{getTranslation('authRegister', language)}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Forms */}
       {mode === 'login' ? (
         <View style={styles.form}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{getTranslation('authEmail', language)}</Text>
           <TextInput
             placeholder="name@example.com"
             style={[
@@ -255,7 +258,7 @@ export default function AuthPage() {
           />
           {loginErrors.email && <Text style={styles.errorText}>{loginErrors.email}</Text>}
           
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{getTranslation('authPassword', language)}</Text>
           <TextInput
             placeholder="••••••••"
             secureTextEntry
@@ -274,15 +277,15 @@ export default function AuthPage() {
           {loginErrors.password && <Text style={styles.errorText}>{loginErrors.password}</Text>}
           
           <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+            <Text style={styles.forgotPasswordText}>{getTranslation('authForgotPassword', language)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogin} style={styles.button} disabled={isLoading}>
-            {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign in</Text>}
+            {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{getTranslation('authLoginButton', language)}</Text>}
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.form}>
-          <Text style={styles.label}>Full Name</Text>
+          <Text style={styles.label}>{getTranslation('authName', language)}</Text>
           <TextInput
             placeholder="John Doe"
             style={[
@@ -299,7 +302,7 @@ export default function AuthPage() {
           />
           {registerErrors.name && <Text style={styles.errorText}>{registerErrors.name}</Text>}
           
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{getTranslation('authEmail', language)}</Text>
           <TextInput
             placeholder="name@example.com"
             style={[
@@ -318,7 +321,7 @@ export default function AuthPage() {
           />
           {registerErrors.email && <Text style={styles.errorText}>{registerErrors.email}</Text>}
           
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{getTranslation('authPassword', language)}</Text>
           <TextInput
             placeholder="••••••••"
             secureTextEntry
@@ -337,14 +340,14 @@ export default function AuthPage() {
           {registerErrors.password && <Text style={styles.errorText}>{registerErrors.password}</Text>}
           
           <TouchableOpacity onPress={handleRegister} style={styles.button} disabled={isLoading}>
-            {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create account</Text>}
+            {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{getTranslation('authRegisterButton', language)}</Text>}
           </TouchableOpacity>
         </View>
       )}
 
 
       <TouchableOpacity onPress={() => setPrivacyModalVisible(true)}>
-        <Text style={styles.privacyPolicy}>Privacy Policy.</Text>
+        <Text style={styles.privacyPolicy}>{getTranslation('authPrivacyPolicy', language)}</Text>
       </TouchableOpacity>
       </ScrollView>
 
@@ -442,6 +445,7 @@ const styles = StyleSheet.create({
   container: {
     padding: Platform.OS === 'web' ? 24 : 24,
     paddingTop: Platform.OS === 'web' ? 20 : 60,
+    paddingBottom: Platform.OS === 'web' ? 100 : 100,
     backgroundColor: '#fff',
     minHeight: Platform.OS === 'web' ? '100vh' : '100%',
     ...(Platform.OS === 'web' && {

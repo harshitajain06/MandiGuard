@@ -11,9 +11,13 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import LanguageToggle from '../../components/LanguageToggle';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function SplashScreen() {
   const navigation = useNavigation();
+  const { language } = useLanguage();
   const screenWidth = Dimensions.get('window').width;
   const isWeb = Platform.OS === 'web';
 
@@ -59,6 +63,11 @@ export default function SplashScreen() {
       />
       <View style={styles.backgroundOverlay} />
       
+      {/* Language Toggle */}
+      <View style={styles.languageToggleContainer}>
+        <LanguageToggle />
+      </View>
+      
       {/* Main Content */}
       <View style={styles.content}>
         {/* Logo/Icon */}
@@ -93,9 +102,9 @@ export default function SplashScreen() {
             }
           ]}
         >
-          <Text style={styles.appTitle}>MandiGuard</Text>
+          <Text style={styles.appTitle}>{getTranslation('splashTitle', language)}</Text>
           <Text style={styles.appSubtitle}>
-            Smart Food Waste Management for Local Markets
+            {getTranslation('splashSubtitle', language)}
           </Text>
         </Animated.View>
 
@@ -111,19 +120,19 @@ export default function SplashScreen() {
         >
           <View style={styles.featureItem}>
             <Text style={styles.featureIcon}>📊</Text>
-            <Text style={styles.featureText}>Real-time Analytics</Text>
+            <Text style={styles.featureText}>{getTranslation('splashFeature1', language)}</Text>
           </View>
           <View style={styles.featureItem}>
             <Text style={styles.featureIcon}>🎯</Text>
-            <Text style={styles.featureText}>Smart Predictions</Text>
+            <Text style={styles.featureText}>{getTranslation('splashFeature2', language)}</Text>
           </View>
           <View style={styles.featureItem}>
             <Text style={styles.featureIcon}>🌱</Text>
-            <Text style={styles.featureText}>Reduce Waste</Text>
+            <Text style={styles.featureText}>{getTranslation('splashFeature3', language)}</Text>
           </View>
           <View style={styles.featureItem}>
             <Text style={styles.featureIcon}>💰</Text>
-            <Text style={styles.featureText}>Maximize Profits</Text>
+            <Text style={styles.featureText}>{getTranslation('splashFeature4', language)}</Text>
           </View>
         </Animated.View>
 
@@ -142,7 +151,7 @@ export default function SplashScreen() {
             onPress={handleGetStarted}
             activeOpacity={0.8}
           >
-            <Text style={styles.getStartedText}>Get Started</Text>
+            <Text style={styles.getStartedText}>{getTranslation('splashGetStarted', language)}</Text>
             <Text style={styles.getStartedArrow}>→</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -158,7 +167,7 @@ export default function SplashScreen() {
           ]}
         >
           <Text style={styles.footerText}>
-            Empowering vendors with AI-driven insights
+            {getTranslation('splashFooter', language)}
           </Text>
         </Animated.View>
       </View>
@@ -170,6 +179,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8fafc',
+  },
+  languageToggleContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'web' ? 20 : 50,
+    right: 20,
+    zIndex: 10,
   },
   backgroundImage: {
     position: 'absolute',

@@ -2,7 +2,9 @@ import { Picker } from '@react-native-picker/picker';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Modal,
+    Platform,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -10,8 +12,11 @@ import {
     View
 } from 'react-native';
 import { auth, dailyDataRef, db } from '../../config/firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function UpdateStockScreen() {
+  const { language } = useLanguage();
   const [entries, setEntries] = useState([]);
   const [selectedUID, setSelectedUID] = useState('');
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -57,13 +62,21 @@ export default function UpdateStockScreen() {
     setSellingPrice('');
   }, [selectedUID]);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleUpdate = async () => {
     if (!dailySold || !sellingPrice || !selectedEntry) {
-      alert("Please fill daily sold quantity and selling price.");
+      setErrorMessage(getTranslation('errorFillDailySold', language));
+      setShowErrorModal(true);
       return;
     }
 
-    const { quantity, shelfLife, createdAt, purchasePrice } = selectedEntry;
+    setIsLoading(true);
+    try {
+      const { quantity, shelfLife, createdAt, purchasePrice } = selectedEntry;
 
     const averageStock = quantity / shelfLife;
     const remainingDays = Math.max(
@@ -126,7 +139,14 @@ export default function UpdateStockScreen() {
       profitLoss: parseFloat(netProfitLoss.toFixed(2)),
       wasteReduction: parseFloat(wasteReductionAmount.toFixed(1))
     });
-  };
+  } catch (error) {
+    console.error("Error updating stock:", error);
+    setErrorMessage("Error updating stock. Please try again.");
+    setShowErrorModal(true);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <ScrollView 
@@ -138,21 +158,21 @@ export default function UpdateStockScreen() {
       showsVerticalScrollIndicator={true}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Update Daily Stock</Text>
+        <Text style={styles.title}>{getTranslation('stockOutTitle', language)}</Text>
         <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
-          <Text style={styles.reloadButtonText}>Reload</Text>
+          <Text style={styles.reloadButtonText}>{getTranslation('stockOutReload', language)}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Orange Box Container */}
       <View style={styles.orangeBox}>
-        <Text style={styles.label}>Select UID</Text>
+        <Text style={styles.label}>{getTranslation('stockOutSelectUID', language)}</Text>
         <View style={styles.picker}>
           <Picker
             selectedValue={selectedUID}
             onValueChange={(value) => setSelectedUID(value)}
           >
-            <Picker.Item label="Select UID" value="" />
+            <Picker.Item label={getTranslation('stockOutSelectUID', language)} value="" />
             {entries.map((item) => (
               <Picker.Item key={item.uid} label={item.uid} value={item.uid} />
             ))}
@@ -161,25 +181,25 @@ export default function UpdateStockScreen() {
 
         {selectedEntry && (
           <View style={styles.details}>
-            <Text style={styles.detailText}>Stock Type: {selectedEntry.stockType}</Text>
-            <Text style={styles.detailText}>Item: {selectedEntry.vegetable}</Text>
-            <Text style={styles.detailText}>Quantity: {selectedEntry.quantity} kg</Text>
-            <Text style={styles.detailText}>Shelf Life: {selectedEntry.shelfLife} days</Text>
+            <Text style={styles.detailText}>{getTranslation('stockOutStockType', language)}: {selectedEntry.stockType}</Text>
+            <Text style={styles.detailText}>{getTranslation('stockOutItem', language)}: {selectedEntry.vegetable}</Text>
+            <Text style={styles.detailText}>{getTranslation('stockOutQuantity', language)}: {selectedEntry.quantity} {getTranslation('kg', language)}</Text>
+            <Text style={styles.detailText}>{getTranslation('stockOutShelfLife', language)}: {selectedEntry.shelfLife} {getTranslation('days', language)}</Text>
             {selectedEntry.purchasePrice && (
-              <Text style={styles.detailText}>Purchase Price: ₹{selectedEntry.purchasePrice}/kg</Text>
+              <Text style={styles.detailText}>{getTranslation('stockOutPurchasePrice', language)}: ₹{selectedEntry.purchasePrice}/{getTranslation('kg', language)}</Text>
             )}
             {selectedEntry.profitLoss !== undefined && (
               <Text style={[styles.detailText, { 
                 color: selectedEntry.profitLoss >= 0 ? '#10B981' : '#EF4444',
                 fontWeight: 'bold'
               }]}>
-                Profit/Loss: ₹{selectedEntry.profitLoss}
+                {getTranslation('stockOutProfitLoss', language)}: ₹{selectedEntry.profitLoss}
               </Text>
             )}
           </View>
         )}
 
-        <Text style={styles.label}>Today's Sold Quantity (kg)</Text>
+        <Text style={styles.label}>{getTranslation('stockOutDailySold', language)}</Text>
         <TextInput
           keyboardType="numeric"
           value={dailySold}
@@ -188,7 +208,7 @@ export default function UpdateStockScreen() {
           style={styles.input}
         />
 
-        <Text style={styles.label}>Selling Price (₹ per kg)</Text>
+        <Text style={styles.label}>{getTranslation('stockOutSellingPrice', language)}</Text>
         <TextInput
           keyboardType="numeric"
           value={sellingPrice}
@@ -199,15 +219,23 @@ export default function UpdateStockScreen() {
 
         {selectedEntry && sellingPrice && dailySold && parseFloat(dailySold) > 0 && (
           <View style={styles.calculationCard}>
-            <Text style={styles.calculationTitle}>Revenue Calculation</Text>
+            <Text style={styles.calculationTitle}>{getTranslation('stockOutRevenueCalculation', language)}</Text>
             <Text style={styles.calculationText}>
-              {dailySold} kg × ₹{sellingPrice}/kg = ₹{(parseFloat(dailySold) * parseFloat(sellingPrice)).toFixed(2)}
+              {dailySold} {getTranslation('kg', language)} × ₹{sellingPrice}/{getTranslation('kg', language)} = ₹{(parseFloat(dailySold) * parseFloat(sellingPrice)).toFixed(2)}
             </Text>
           </View>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleUpdate}>
-          <Text style={styles.buttonText}>Submit & Predict</Text>
+        <TouchableOpacity 
+          style={[styles.button, isLoading && styles.buttonDisabled]} 
+          onPress={handleUpdate}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#ffffff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>{getTranslation('stockOutSubmit', language)}</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -220,28 +248,28 @@ export default function UpdateStockScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Enhanced Prediction Result</Text>
+            <Text style={styles.modalTitle}>{getTranslation('stockOutPredictionResult', language)}</Text>
             
             <View style={styles.predictionCard}>
-              <Text style={styles.predictionLabel}>Predicted Waste</Text>
-              <Text style={styles.predictionValue}>{predictedWaste} kg</Text>
+              <Text style={styles.predictionLabel}>{getTranslation('stockOutPredictedWaste', language)}</Text>
+              <Text style={styles.predictionValue}>{predictedWaste} {getTranslation('kg', language)}</Text>
             </View>
 
             {sellingPrice && dailySold && (
               <View style={styles.predictionCard}>
-                <Text style={styles.predictionLabel}>Revenue from Sales</Text>
+                <Text style={styles.predictionLabel}>{getTranslation('stockOutRevenueFromSales', language)}</Text>
                 <Text style={[styles.predictionValue, { color: '#3B82F6' }]}>
                   ₹{(parseFloat(dailySold) * parseFloat(sellingPrice)).toFixed(2)}
                 </Text>
                 <Text style={styles.predictionSubtext}>
-                  {dailySold} kg × ₹{sellingPrice}/kg
+                  {dailySold} {getTranslation('kg', language)} × ₹{sellingPrice}/{getTranslation('kg', language)}
                 </Text>
               </View>
             )}
 
             {profitLoss !== null && (
               <View style={styles.predictionCard}>
-                <Text style={styles.predictionLabel}>Profit/Loss</Text>
+                <Text style={styles.predictionLabel}>{getTranslation('stockOutProfitLoss', language)}</Text>
                 <Text style={[styles.predictionValue, { 
                   color: parseFloat(profitLoss) >= 0 ? '#10B981' : '#EF4444'
                 }]}>
@@ -252,9 +280,9 @@ export default function UpdateStockScreen() {
 
             {wasteReduction !== null && parseFloat(wasteReduction) > 0 && (
               <View style={styles.predictionCard}>
-                <Text style={styles.predictionLabel}>Waste Reduced</Text>
+                <Text style={styles.predictionLabel}>{getTranslation('stockOutWasteReduced', language)}</Text>
                 <Text style={[styles.predictionValue, { color: '#10B981' }]}>
-                  {wasteReduction} kg
+                  {wasteReduction} {getTranslation('kg', language)}
                 </Text>
               </View>
             )}
@@ -269,7 +297,31 @@ export default function UpdateStockScreen() {
               style={[styles.button, { marginTop: 20 }]}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.buttonText}>Close</Text>
+              <Text style={styles.buttonText}>{getTranslation('stockOutClose', language)}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        visible={showErrorModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowErrorModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.errorIconContainer}>
+              <Text style={styles.errorIcon}>❌</Text>
+            </View>
+            <Text style={styles.modalTitle}>Error</Text>
+            <Text style={styles.modalMessage}>{errorMessage}</Text>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.errorButton]}
+              onPress={() => setShowErrorModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -280,7 +332,7 @@ export default function UpdateStockScreen() {
 
 const styles = StyleSheet.create({
   scrollContainer: { flex: 1, backgroundColor: '#fff' },
-  container: { padding: 20, flexGrow: 1 },
+  container: { padding: 20, flexGrow: 1, paddingBottom: 100 },
   header: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -403,5 +455,64 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1e40af',
     fontWeight: '600'
-  }
+  },
+  buttonDisabled: {
+    backgroundColor: '#94a3b8',
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+      ':hover': {
+        backgroundColor: '#94a3b8',
+        transform: 'none',
+        boxShadow: 'none',
+      }
+    })
+  },
+  // Error Modal Styles
+  errorIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    alignSelf: 'center',
+  },
+  errorIcon: {
+    fontSize: 30,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignSelf: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'background-color 0.2s',
+      ':hover': {
+        backgroundColor: '#2563eb',
+      }
+    })
+  },
+  errorButton: {
+    backgroundColor: '#ef4444',
+    ...(Platform.OS === 'web' && {
+      ':hover': {
+        backgroundColor: '#dc2626',
+      }
+    })
+  },
+  modalButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

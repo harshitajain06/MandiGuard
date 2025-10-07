@@ -1,7 +1,10 @@
 import React from "react";
 import { Dimensions, Image, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function OverviewScreen() {
+  const { language } = useLanguage();
   const screenWidth = Dimensions.get('window').width;
   const isWeb = Platform.OS === 'web';
 
@@ -14,9 +17,9 @@ export default function OverviewScreen() {
           style={styles.backgroundImage}
         />
         <View style={styles.heroOverlay}>
-          <Text style={styles.heroTitle}>MandiGuard</Text>
+          <Text style={styles.heroTitle}>{getTranslation('splashTitle', language)}</Text>
           <Text style={styles.heroSubtitle}>
-            Reducing Food Waste in Local Markets Through Smart Analytics
+            {getTranslation('splashSubtitle', language)}
           </Text>
         </View>
       </View>
@@ -25,64 +28,52 @@ export default function OverviewScreen() {
       <View style={styles.contentSection}>
         {/* Overview Section */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Overview</Text>
+          <Text style={styles.sectionTitle}>{getTranslation('overviewTitle', language)}</Text>
           <Text style={styles.paragraph}>
-            The MandiGuard web app aims to address the issue of food wastage in
-            local markets (mandis), where vendors often overstock due to a lack of
-            predictive planning tools. The app enables vendors or Self-Help Groups
-            (SHGs) to input daily stock and sales data, receive waste forecasts
-            using predictive models, and get smart inventory recommendations. This
-            helps reduce overstocking, improve efficiency, and minimize food
-            spoilage.
+            {getTranslation('overviewDescription', language)}
           </Text>
         </View>
 
         {/* Problem Section */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Problem</Text>
+          <Text style={styles.sectionTitle}>{getTranslation('problemTitle', language)}</Text>
           <Text style={styles.paragraph}>
-            Around 30–40% of food goes to waste in local markets. The app enables
-            vendors or Self-Help Groups to input daily stock and sales data,
-            receive waste forecasts using predictive models, and get smart
-            inventory recommendations.
+            {getTranslation('problemDescription', language)}
           </Text>
         </View>
 
         {/* Solution Section */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Solution</Text>
+          <Text style={styles.sectionTitle}>{getTranslation('solutionTitle', language)}</Text>
           <Text style={styles.paragraph}>
-            MandiGuard web app aims to address issue of food wastage in local
-            markets in mandis. Enables vendors or Self-Help Groups (SHGs) to input
-            daily stock and sales data, receive waste forecasts using predictive
-            models, and get smart inventory recommendations.
+            {getTranslation('solutionDescription', language)}
           </Text>
         </View>
 
         {/* Features Grid */}
         <View style={styles.featuresGrid}>
           <View style={styles.featureCard}>
-            <Text style={styles.featureTitle}>📊 Analytics</Text>
+            <Text style={styles.featureTitle}>{getTranslation('featureAnalytics', language)}</Text>
             <Text style={styles.featureText}>
-              Real-time waste prediction and inventory analytics
+              {getTranslation('featureAnalyticsDesc', language)}
             </Text>
           </View>
           <View style={styles.featureCard}>
-            <Text style={styles.featureTitle}>🎯 Smart Recommendations</Text>
+            <Text style={styles.featureTitle}>{getTranslation('featureSmartRec', language)}</Text>
             <Text style={styles.featureText}>
-              AI-powered suggestions for optimal stock levels
+              {getTranslation('featureSmartRecDesc', language)}
             </Text>
           </View>
           <View style={styles.featureCard}>
-            <Text style={styles.featureTitle}>📱 Easy to Use</Text>
+            <Text style={styles.featureTitle}>{getTranslation('featureEasyUse', language)}</Text>
             <Text style={styles.featureText}>
-              Simple interface for vendors and SHGs
+              {getTranslation('featureEasyUseDesc', language)}
             </Text>
           </View>
           <View style={styles.featureCard}>
-            <Text style={styles.featureTitle}>🌱 Sustainable</Text>
+            <Text style={styles.featureTitle}>{getTranslation('featureSustainable', language)}</Text>
             <Text style={styles.featureText}>
-              Reduce food waste and improve market efficiency
+              {getTranslation('featureSustainableDesc', language)}
             </Text>
           </View>
         </View>
@@ -146,6 +137,7 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     padding: Platform.OS === 'web' ? 40 : 16,
+    paddingBottom: Platform.OS === 'web' ? 100 : 100,
     ...(Platform.OS === 'web' && {
       maxWidth: 1200,
       alignSelf: 'center',

@@ -3,14 +3,20 @@ import { Picker } from '@react-native-picker/picker';
 import { addDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
+    Modal,
+    Platform,
     ScrollView,
     StyleSheet,
     Text, TextInput, TouchableOpacity,
     View
 } from 'react-native';
 import { auth, dailyDataRef } from '../../config/firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function HomeScreen() {
+  const { language } = useLanguage();
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [stockType, setStockType] = useState("Vegetables");
@@ -18,6 +24,10 @@ export default function HomeScreen() {
   const [quantity, setQuantity] = useState("");
   const [shelfLife, setShelfLife] = useState("");
   const [purchasePrice, setPurchasePrice] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const user = auth.currentUser; // Logged-in user
 
@@ -40,9 +50,18 @@ export default function HomeScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!quantity || !shelfLife || !purchasePrice) return alert("Please fill all fields");
-    if (!user) return alert("User not logged in");
+    if (!quantity || !shelfLife || !purchasePrice) {
+      setErrorMessage(getTranslation('errorFillAllFields', language));
+      setShowErrorModal(true);
+      return;
+    }
+    if (!user) {
+      setErrorMessage(getTranslation('errorUserNotLoggedIn', language));
+      setShowErrorModal(true);
+      return;
+    }
 
+    setIsLoading(true);
     try {
       const uid = await generateUID();
       await addDoc(dailyDataRef, {
@@ -56,22 +75,31 @@ export default function HomeScreen() {
         purchasePrice: parseFloat(purchasePrice),
         createdAt: new Date()
       });
-      alert(`Data saved! UID: ${uid}`);
+      setShowSuccessModal(true);
+      setQuantity("");
+      setShelfLife("");
+      setPurchasePrice("");
     } catch (error) {
       console.error("Error saving data: ", error);
+      setErrorMessage("Error adding stock. Please try again.");
+      setShowErrorModal(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <ScrollView 
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={true}
     >
-      <Text style={styles.heading}>Reduce Surplus Food Waste</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>{getTranslation('stockInTitle', language)}</Text>
+      </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Date</Text>
+      <View style={styles.orangeBox}>
+        <Text style={styles.label}>{getTranslation('stockInDate', language)}</Text>
         <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
           <Text>{date.toISOString().split('T')[0]}</Text>
         </TouchableOpacity>
@@ -87,26 +115,26 @@ export default function HomeScreen() {
           />
         )}
 
-        <Text style={styles.label}>Stock Type</Text>
+        <Text style={styles.label}>{getTranslation('stockInStockType', language)}</Text>
         <View style={styles.pickerContainer}>
           <Picker selectedValue={stockType} onValueChange={setStockType}>
-            <Picker.Item label="Fruits" value="Fruits" />
-            <Picker.Item label="Vegetables" value="Vegetables" />
-            <Picker.Item label="Cereals" value="Cereals" />
+            <Picker.Item label={getTranslation('stockInFruits', language)} value="Fruits" />
+            <Picker.Item label={getTranslation('stockInVegetables', language)} value="Vegetables" />
+            <Picker.Item label={getTranslation('stockInCereals', language)} value="Cereals" />
           </Picker>
         </View>
 
-        <Text style={styles.label}>Item Name</Text>
+        <Text style={styles.label}>{getTranslation('stockInItemName', language)}</Text>
         <View style={styles.pickerContainer}>
           <Picker selectedValue={vegetable} onValueChange={setVegetable}>
-            <Picker.Item label="Tomatoes" value="Tomatoes" />
-            <Picker.Item label="Spinach" value="Spinach" />
-            <Picker.Item label="Wheat" value="Wheat" />
-            <Picker.Item label="Mangoes" value="Mangoes" />
+            <Picker.Item label={getTranslation('stockInTomatoes', language)} value="Tomatoes" />
+            <Picker.Item label={getTranslation('stockInSpinach', language)} value="Spinach" />
+            <Picker.Item label={getTranslation('stockInWheat', language)} value="Wheat" />
+            <Picker.Item label={getTranslation('stockInMangoes', language)} value="Mangoes" />
           </Picker>
         </View>
 
-        <Text style={styles.label}>Stocked Quantity (kg)</Text>
+        <Text style={styles.label}>{getTranslation('stockInQuantity', language)}</Text>
         <TextInput
           keyboardType="numeric"
           value={quantity}
@@ -115,7 +143,7 @@ export default function HomeScreen() {
           style={styles.input}
         />
 
-        <Text style={styles.label}>Shelf Life (in days)</Text>
+        <Text style={styles.label}>{getTranslation('stockInShelfLife', language)}</Text>
         <TextInput
           keyboardType="numeric"
           value={shelfLife}
@@ -124,7 +152,7 @@ export default function HomeScreen() {
           style={styles.input}
         />
 
-        <Text style={styles.label}>Purchase Price (₹ per kg)</Text>
+        <Text style={styles.label}>{getTranslation('stockInPurchasePrice', language)}</Text>
         <TextInput
           keyboardType="numeric"
           value={purchasePrice}
@@ -133,28 +161,240 @@ export default function HomeScreen() {
           style={styles.input}
         />
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Submit</Text>
+        <TouchableOpacity 
+          style={[styles.button, isLoading && styles.buttonDisabled]} 
+          onPress={handleSubmit}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#ffffff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>{getTranslation('stockInSubmit', language)}</Text>
+          )}
         </TouchableOpacity>
       </View>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.successIconContainer}>
+              <Text style={styles.successIcon}>✅</Text>
+            </View>
+            <Text style={styles.modalTitle}>Success!</Text>
+            <Text style={styles.modalMessage}>
+              {getTranslation('stockInTitle', language)} data has been saved successfully.
+            </Text>
+            <TouchableOpacity 
+              style={styles.modalButton}
+              onPress={() => setShowSuccessModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        visible={showErrorModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowErrorModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.errorIconContainer}>
+              <Text style={styles.errorIcon}>❌</Text>
+            </View>
+            <Text style={styles.modalTitle}>Error</Text>
+            <Text style={styles.modalMessage}>{errorMessage}</Text>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.errorButton]}
+              onPress={() => setShowErrorModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+        </TouchableOpacity>
+      </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { padding: 20, flexGrow: 1 },
-  heading: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
-  form: { backgroundColor: "#f97316", borderRadius: 10, padding: 15 },
-  label: { color: "#fff", marginTop: 10 },
+  scrollContainer: { 
+    flex: 1, 
+    backgroundColor: '#f8fafc',
+    ...(Platform.OS === 'web' && {
+      minHeight: '100vh',
+    })
+  },
+  container: { 
+    padding: 20, 
+    flexGrow: 1,
+    paddingBottom: 100,
+  },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 24,
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  title: { 
+    fontSize: Platform.OS === 'web' ? 28 : 24, 
+    fontWeight: 'bold',
+    color: '#1e293b',
+  },
+  orangeBox: {
+    backgroundColor: '#f97316',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 10,
+  },
+  label: { 
+    marginTop: 10, 
+    fontWeight: '600',
+    color: '#fff',
+    fontSize: 16
+  },
   input: {
-    backgroundColor: "#fff", padding: 10, borderRadius: 5, marginTop: 5
+    backgroundColor: '#fff', 
+    borderRadius: 6, 
+    padding: 12, 
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
   },
   pickerContainer: {
-    backgroundColor: "#fff", borderRadius: 5, marginTop: 5
+    backgroundColor: '#fff', 
+    borderRadius: 6, 
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
   },
-  submitButton: {
-    backgroundColor: "#fff", marginTop: 15, padding: 12, borderRadius: 5
+  button: {
+    backgroundColor: '#fff', 
+    padding: 14, 
+    borderRadius: 8, 
+    marginTop: 20
   },
-  submitText: { color: "#f97316", fontWeight: "bold", textAlign: "center" }
+  buttonDisabled: {
+    backgroundColor: '#94a3b8',
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+      ':hover': {
+        backgroundColor: '#94a3b8',
+        transform: 'none',
+        boxShadow: 'none',
+      }
+    })
+  },
+  buttonText: { 
+    color: '#f97316', 
+    fontWeight: 'bold', 
+    textAlign: 'center',
+    fontSize: 16
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+    ...(Platform.OS === 'web' && {
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    })
+  },
+  successIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#10b981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  successIcon: {
+    fontSize: 30,
+  },
+  errorIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  errorIcon: {
+    fontSize: 30,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'background-color 0.2s',
+      ':hover': {
+        backgroundColor: '#2563eb',
+      }
+    })
+  },
+  errorButton: {
+    backgroundColor: '#ef4444',
+    ...(Platform.OS === 'web' && {
+      ':hover': {
+        backgroundColor: '#dc2626',
+      }
+    })
+  },
+  modalButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

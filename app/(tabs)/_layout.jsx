@@ -9,7 +9,9 @@ import React from "react";
 import { Alert } from 'react-native';
 import { auth } from "../../config/firebase";
 import { Colors } from "../../constants/Colors";
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useColorScheme } from "../../hooks/useColorScheme";
+import { getTranslation } from '../../utils/translations';
 import DashboardScreen from "./DashboardScreen";
 import DataEntryScreen from "./DataEntryScreen";
 import HomeScreen from "./HomeScreen";
@@ -25,6 +27,7 @@ const Drawer = createDrawerNavigator();
 // Bottom Tab Navigator Component
 const BottomTabs = () => {
   const colorScheme = useColorScheme();
+  const { language } = useLanguage();
 
   return (
     <Tab.Navigator
@@ -52,18 +55,26 @@ const BottomTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={DashboardScreen} />
-      <Tab.Screen name="Dashboard" component={HomeScreen} />
+      <Tab.Screen 
+        name="Home" 
+        component={DashboardScreen} 
+        options={{ title: getTranslation('navHome', language) }}
+      />
+      <Tab.Screen 
+        name="Dashboard" 
+        component={HomeScreen} 
+        options={{ title: getTranslation('navDashboard', language) }}
+      />
       
       <Tab.Screen
         name="Stock Out"
         component={UpdateDataScreen}
-        options={{ title: "Stock Out" }}
+        options={{ title: getTranslation('navStockOut', language) }}
       />
       <Tab.Screen
         name="Stock In"
         component={DataEntryScreen}
-        options={{ title: "Stock In" }}
+        options={{ title: getTranslation('navStockIn', language) }}
       />
     </Tab.Navigator>
   );
@@ -72,6 +83,7 @@ const BottomTabs = () => {
 // Drawer Navigator Component
 const DrawerNavigator = () => {
   const navigation = useNavigation();
+  const { language } = useLanguage();
 
   const handleLogout = () => {
     signOut(auth)
@@ -86,13 +98,13 @@ const DrawerNavigator = () => {
 
   return (
     <Drawer.Navigator initialRouteName="MainTabs">
-      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: 'MandiGuard' }} />
+      <Drawer.Screen name="MainTabs" component={BottomTabs} options={{ title: getTranslation('splashTitle', language) }} />
       
       <Drawer.Screen
         name="Logout"
         component={BottomTabs}
         options={{
-          title: 'Logout',
+          title: getTranslation('navLogout', language),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),

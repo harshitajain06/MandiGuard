@@ -3,8 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BarChart, PieChart } from 'react-native-chart-kit';
 import { auth, dailyDataRef } from '../../config/firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getTranslation } from '../../utils/translations';
 
 export default function DashboardScreen() {
+  const { language } = useLanguage();
   const [stats, setStats] = useState({
     totalInventory: 0,
     wasteThisMonth: 0,
@@ -166,42 +169,42 @@ export default function DashboardScreen() {
       }
     >
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>Dashboard</Text>
+        <Text style={styles.header}>{getTranslation('dashboardTitle', language)}</Text>
         <TouchableOpacity style={styles.reloadButton} onPress={onRefresh}>
-          <Text style={styles.reloadButtonText}>🔄 Reload</Text>
+          <Text style={styles.reloadButtonText}>{getTranslation('dashboardReload', language)}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Stats Row 1 */}
       <View style={styles.statsRow}>
-        <StatCard title="Total Inventory" value={`${stats.totalInventory} kg`} />
-        <StatCard title="Waste This Month" value={`${stats.wasteThisMonth} kg`} />
+        <StatCard title={getTranslation('dashboardTotalInventory', language)} value={`${stats.totalInventory} ${getTranslation('kg', language)}`} />
+        <StatCard title={getTranslation('dashboardWasteThisMonth', language)} value={`${stats.wasteThisMonth} ${getTranslation('kg', language)}`} />
       </View>
 
       {/* Stats Row 2 */}
       <View style={styles.statsRow}>
-        <StatCard title="Waste Reduction" value={`${stats.wasteReduction}%`} />
-        <StatCard title="Efficiency Rate" value={`${stats.efficiencyRate}%`} />
+        <StatCard title={getTranslation('dashboardWasteReduction', language)} value={`${stats.wasteReduction}%`} />
+        <StatCard title={getTranslation('dashboardEfficiencyRate', language)} value={`${stats.efficiencyRate}%`} />
       </View>
 
       {/* Financial Stats Row */}
       <View style={styles.statsRow}>
         <StatCard 
-          title="Total Profit" 
+          title={getTranslation('dashboardTotalProfit', language)} 
           value={`₹${stats.totalProfit}`} 
           color={parseFloat(stats.totalProfit) >= 0 ? '#10B981' : '#EF4444'}
         />
-        <StatCard title="Waste Reduced" value={`${stats.wasteReduced} kg`} color="#10B981" />
+        <StatCard title={getTranslation('dashboardWasteReduced', language)} value={`${stats.wasteReduced} ${getTranslation('kg', language)}`} color="#10B981" />
       </View>
 
       {/* Revenue vs Costs Row */}
       <View style={styles.statsRow}>
-        <StatCard title="Total Revenue" value={`₹${stats.totalRevenue}`} color="#3B82F6" />
-        <StatCard title="Total Costs" value={`₹${stats.totalCosts}`} color="#F59E0B" />
+        <StatCard title={getTranslation('dashboardTotalRevenue', language)} value={`₹${stats.totalRevenue}`} color="#3B82F6" />
+        <StatCard title={getTranslation('dashboardTotalCosts', language)} value={`₹${stats.totalCosts}`} color="#F59E0B" />
       </View>
 
       {/* Bar Chart */}
-      <Text style={styles.sectionTitle}>Monthly Waste Trends</Text>
+      <Text style={styles.sectionTitle}>{getTranslation('dashboardMonthlyWasteTrends', language)}</Text>
       {monthlyWaste.length > 0 ? (
         <BarChart
           data={{
@@ -210,16 +213,16 @@ export default function DashboardScreen() {
           }}
           width={Dimensions.get('window').width - 20}
           height={220}
-          yAxisSuffix="kg"
+          yAxisSuffix={getTranslation('kg', language)}
           chartConfig={chartConfig}
           style={styles.chart}
         />
       ) : (
-        <Text style={{ textAlign: "center", marginTop: 10 }}>No data available</Text>
+        <Text style={{ textAlign: "center", marginTop: 10 }}>{getTranslation('dashboardNoData', language)}</Text>
       )}
 
       {/* Pie Chart */}
-      <Text style={styles.sectionTitle}>Waste by Category</Text>
+      <Text style={styles.sectionTitle}>{getTranslation('dashboardWasteByCategory', language)}</Text>
       {wasteByCategory.length > 0 ? (
         <PieChart
           data={wasteByCategory}
@@ -232,7 +235,7 @@ export default function DashboardScreen() {
           absolute
         />
       ) : (
-        <Text style={{ textAlign: "center", marginTop: 10 }}>No data available</Text>
+        <Text style={{ textAlign: "center", marginTop: 10 }}>{getTranslation('dashboardNoData', language)}</Text>
       )}
     </ScrollView>
   );
@@ -257,7 +260,7 @@ const chartConfig = {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 10 },
+  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 10, paddingBottom: 20 },
   headerContainer: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
