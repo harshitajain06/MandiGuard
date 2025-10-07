@@ -1,20 +1,21 @@
 // src/navigation/StackLayout.jsx
-import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import HomeScreen from "./HomeScreen";
-import DataEntryScreen from "./DataEntryScreen";
-import UpdateDataScreen from "./UpdateDataScreen";
-import LoginRegister from './index';
-import DashboardScreen from "./DashboardScreen";
-import { Colors } from "../../constants/Colors";
-import { useColorScheme } from "../../hooks/useColorScheme";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from '@react-navigation/native';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from "@react-navigation/stack";
 import { signOut } from 'firebase/auth';
+import React from "react";
 import { Alert } from 'react-native';
 import { auth } from "../../config/firebase";
+import { Colors } from "../../constants/Colors";
+import { useColorScheme } from "../../hooks/useColorScheme";
+import DashboardScreen from "./DashboardScreen";
+import DataEntryScreen from "./DataEntryScreen";
+import HomeScreen from "./HomeScreen";
+import SplashScreen from "./SplashScreen";
+import UpdateDataScreen from "./UpdateDataScreen";
+import LoginRegister from './index';
 
 
 const Stack = createStackNavigator();
@@ -119,8 +120,10 @@ export default function StackLayout() {
           backgroundColor: Colors[colorScheme ?? "light"].background,
         },
       }}
+      initialRouteName="Splash"
     >
-    <Stack.Screen name="LoginRegister" component={LoginRegister} />
+      <Stack.Screen name="Splash" component={SplashScreen} />
+      <Stack.Screen name="LoginRegister" component={LoginRegister} />
       <Stack.Screen name="Drawer" component={DrawerNavigator} />
     </Stack.Navigator>
   );
