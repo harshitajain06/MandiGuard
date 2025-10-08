@@ -2,14 +2,14 @@ import { Picker } from '@react-native-picker/picker';
 import { doc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text, TextInput, TouchableOpacity,
-    View
+  ActivityIndicator,
+  Modal,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
 import { auth, dailyDataRef, db } from '../../config/firebase';
 import { useLanguage } from '../../contexts/LanguageContext';

@@ -3,13 +3,13 @@ import { Picker } from '@react-native-picker/picker';
 import { addDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text, TextInput, TouchableOpacity,
-    View
+  ActivityIndicator,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
 import { auth, dailyDataRef } from '../../config/firebase';
 import { useLanguage } from '../../contexts/LanguageContext';

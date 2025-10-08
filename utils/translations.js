@@ -37,6 +37,12 @@ export const translations = {
     dashboardWasteByCategory: "Waste by Category",
     dashboardNoData: "No data available",
     dashboardReload: "🔄 Reload",
+    dashboardWeeklyOverview: "Weekly Overview",
+    dashboardWeeklyWaste: "Weekly Waste",
+    dashboardWeeklyRevenue: "Weekly Revenue",
+    dashboardWeeklyProfit: "Weekly Profit",
+    dashboardAvgDailyWaste: "Avg Daily Waste",
+    dashboardWeeklyTrends: "Weekly Waste Trends",
 
     // Overview Screen
     overviewTitle: "Overview",
@@ -177,6 +183,12 @@ export const translations = {
     dashboardWasteByCategory: "श्रेणी के अनुसार कचरा",
     dashboardNoData: "कोई डेटा उपलब्ध नहीं",
     dashboardReload: "🔄 पुनः लोड करें",
+    dashboardWeeklyOverview: "साप्ताहिक अवलोकन",
+    dashboardWeeklyWaste: "साप्ताहिक कचरा",
+    dashboardWeeklyRevenue: "साप्ताहिक राजस्व",
+    dashboardWeeklyProfit: "साप्ताहिक लाभ",
+    dashboardAvgDailyWaste: "औसत दैनिक कचरा",
+    dashboardWeeklyTrends: "साप्ताहिक कचरा प्रवृत्ति",
 
     // Overview Screen
     overviewTitle: "अवलोकन",

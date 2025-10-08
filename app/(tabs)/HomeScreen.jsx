@@ -20,6 +20,13 @@ export default function DashboardScreen() {
   });
   const [monthlyWaste, setMonthlyWaste] = useState([]);
   const [wasteByCategory, setWasteByCategory] = useState([]);
+  const [weeklyWaste, setWeeklyWaste] = useState([]);
+  const [weeklyStats, setWeeklyStats] = useState({
+    totalWaste: 0,
+    totalRevenue: 0,
+    totalProfit: 0,
+    averageDailyWaste: 0,
+  });
   const [refreshing, setRefreshing] = useState(false);
 
   const chartColors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6'];
@@ -140,6 +147,84 @@ export default function DashboardScreen() {
 
     setMonthlyWaste(monthlyWasteArray);
 
+    // Calculate weekly data
+    const weeklyWasteMap = {}; // { "2025-W01": wasteValue }
+    let weeklyTotalWaste = 0;
+    let weeklyTotalRevenue = 0;
+    let weeklyTotalProfit = 0;
+
+    // Get current week start date (Monday)
+    const today = new Date();
+    const currentWeekStart = new Date(today);
+    currentWeekStart.setDate(today.getDate() - today.getDay() + 1); // Monday
+    currentWeekStart.setHours(0, 0, 0, 0);
+
+    // Get last 4 weeks data
+    for (let i = 0; i < 4; i++) {
+      const weekStart = new Date(currentWeekStart);
+      weekStart.setDate(currentWeekStart.getDate() - (i * 7));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const weekKey = `W${String(Math.ceil((weekStart.getDate()) / 7)).padStart(2, '0')}`;
+      const weekLabel = `${weekKey} (${weekStart.getDate()}/${weekStart.getMonth() + 1})`;
+
+      let weekWaste = 0;
+      let weekRevenue = 0;
+      let weekProfit = 0;
+
+      data.forEach(entry => {
+        const { quantity, shelfLife, createdAt, lastSold, purchasePrice, sellingPrice, profitLoss } = entry;
+        const createdDate = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+        
+        if (createdDate >= weekStart && createdDate <= weekEnd) {
+          const averageStock = quantity / shelfLife;
+          const remainingDays = Math.max(0, Math.ceil(
+            (new Date(createdAt.toDate ? createdAt.toDate() : createdAt).getTime() +
+              shelfLife * 24 * 60 * 60 * 1000 - Date.now()) / (1000 * 3600 * 24)
+          ));
+          const wasteUnits = Math.max(0, (averageStock - (lastSold || 0)) * remainingDays);
+          
+          weekWaste += wasteUnits;
+          
+          if (profitLoss !== undefined) {
+            weekProfit += profitLoss;
+          }
+          
+          if (purchasePrice && sellingPrice && lastSold) {
+            const soldUnits = Math.min(lastSold, averageStock * remainingDays);
+            weekRevenue += soldUnits * sellingPrice;
+          }
+        }
+      });
+
+      weeklyWasteMap[weekLabel] = weekWaste;
+      weeklyTotalWaste += weekWaste;
+      weeklyTotalRevenue += weekRevenue;
+      weeklyTotalProfit += weekProfit;
+    }
+
+    // Convert weeklyWasteMap → array for chart
+    const weeklyWasteArray = Object.keys(weeklyWasteMap)
+      .sort((a, b) => {
+        const aWeek = parseInt(a.split('W')[1].split(' ')[0]);
+        const bWeek = parseInt(b.split('W')[1].split(' ')[0]);
+        return aWeek - bWeek;
+      })
+      .map(weekKey => ({
+        week: weekKey,
+        waste: weeklyWasteMap[weekKey].toFixed(1),
+      }));
+
+    setWeeklyWaste(weeklyWasteArray);
+    setWeeklyStats({
+      totalWaste: weeklyTotalWaste.toFixed(1),
+      totalRevenue: weeklyTotalRevenue.toFixed(2),
+      totalProfit: weeklyTotalProfit.toFixed(2),
+      averageDailyWaste: (weeklyTotalWaste / 28).toFixed(1), // 4 weeks = 28 days
+    });
+
     setWasteByCategory(
       Object.keys(categoryWaste).map((key, index) => ({
         name: key,
@@ -210,6 +295,35 @@ export default function DashboardScreen() {
           data={{
             labels: monthlyWaste.map(item => item.month),
             datasets: [{ data: monthlyWaste.map(item => parseFloat(item.waste)) }],
+          }}
+          width={Dimensions.get('window').width - 20}
+          height={220}
+          yAxisSuffix={getTranslation('kg', language)}
+          chartConfig={chartConfig}
+          style={styles.chart}
+        />
+      ) : (
+        <Text style={{ textAlign: "center", marginTop: 10 }}>{getTranslation('dashboardNoData', language)}</Text>
+      )}
+
+      {/* Weekly Stats */}
+      <Text style={styles.sectionTitle}>{getTranslation('dashboardWeeklyOverview', language)}</Text>
+      <View style={styles.statsRow}>
+        <StatCard title={getTranslation('dashboardWeeklyWaste', language)} value={`${weeklyStats.totalWaste} ${getTranslation('kg', language)}`} color="#FF6B6B" />
+        <StatCard title={getTranslation('dashboardWeeklyRevenue', language)} value={`₹${weeklyStats.totalRevenue}`} color="#4D96FF" />
+      </View>
+      <View style={styles.statsRow}>
+        <StatCard title={getTranslation('dashboardWeeklyProfit', language)} value={`₹${weeklyStats.totalProfit}`} color={parseFloat(weeklyStats.totalProfit) >= 0 ? '#10B981' : '#EF4444'} />
+        <StatCard title={getTranslation('dashboardAvgDailyWaste', language)} value={`${weeklyStats.averageDailyWaste} ${getTranslation('kg', language)}`} color="#FFD93D" />
+      </View>
+
+      {/* Weekly Bar Chart */}
+      <Text style={styles.sectionTitle}>{getTranslation('dashboardWeeklyTrends', language)}</Text>
+      {weeklyWaste.length > 0 ? (
+        <BarChart
+          data={{
+            labels: weeklyWaste.map(item => item.week),
+            datasets: [{ data: weeklyWaste.map(item => parseFloat(item.waste)) }],
           }}
           width={Dimensions.get('window').width - 20}
           height={220}
