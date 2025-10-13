@@ -31,6 +31,37 @@ export default function HomeScreen() {
 
   const user = auth.currentUser; // Logged-in user
 
+  // Comprehensive item lists by category
+  const itemOptions = {
+    Vegetables: [
+      "Tomatoes", "Potatoes", "Onions", "Spinach", "Cabbage", "Cauliflower",
+      "Broccoli", "Carrots", "Beetroot", "Radish", "Turnip", "Pumpkin",
+      "Bottle Gourd", "Ridge Gourd", "Bitter Gourd", "Snake Gourd", "Okra",
+      "Eggplant", "Bell Pepper", "Green Chili", "Ginger", "Garlic",
+      "Coriander", "Mint", "Fenugreek", "Lettuce", "Cucumber", "Zucchini",
+      "Green Beans", "Peas", "Corn", "Mushrooms", "Drumstick"
+    ],
+    Fruits: [
+      "Mangoes", "Apples", "Bananas", "Oranges", "Grapes", "Watermelon",
+      "Muskmelon", "Papaya", "Pineapple", "Guava", "Pomegranate", "Strawberries",
+      "Litchi", "Cherries", "Peaches", "Plums", "Pears", "Kiwi",
+      "Dragon Fruit", "Avocado", "Custard Apple", "Sweet Lime", "Lemon",
+      "Coconut", "Dates", "Figs", "Jackfruit", "Berries", "Sapota"
+    ],
+    Cereals: [
+      "Wheat", "Rice", "Barley", "Corn", "Oats", "Millet",
+      "Sorghum", "Quinoa", "Rye", "Buckwheat", "Amaranth",
+      "Pearl Millet", "Finger Millet", "Foxtail Millet"
+    ]
+  };
+
+  // Update vegetable when stockType changes
+  const handleStockTypeChange = (newStockType) => {
+    setStockType(newStockType);
+    // Set default item for the new stock type
+    setVegetable(itemOptions[newStockType][0]);
+  };
+
   // Generate unique UID: userId-stockType-date-XX
   const generateUID = async () => {
     const formattedDate = date.toISOString().split('T')[0];
@@ -117,7 +148,7 @@ export default function HomeScreen() {
 
         <Text style={styles.label}>{getTranslation('stockInStockType', language)}</Text>
         <View style={styles.pickerContainer}>
-          <Picker selectedValue={stockType} onValueChange={setStockType}>
+          <Picker selectedValue={stockType} onValueChange={handleStockTypeChange}>
             <Picker.Item label={getTranslation('stockInFruits', language)} value="Fruits" />
             <Picker.Item label={getTranslation('stockInVegetables', language)} value="Vegetables" />
             <Picker.Item label={getTranslation('stockInCereals', language)} value="Cereals" />
@@ -127,10 +158,9 @@ export default function HomeScreen() {
         <Text style={styles.label}>{getTranslation('stockInItemName', language)}</Text>
         <View style={styles.pickerContainer}>
           <Picker selectedValue={vegetable} onValueChange={setVegetable}>
-            <Picker.Item label={getTranslation('stockInTomatoes', language)} value="Tomatoes" />
-            <Picker.Item label={getTranslation('stockInSpinach', language)} value="Spinach" />
-            <Picker.Item label={getTranslation('stockInWheat', language)} value="Wheat" />
-            <Picker.Item label={getTranslation('stockInMangoes', language)} value="Mangoes" />
+            {itemOptions[stockType].map((item) => (
+              <Picker.Item key={item} label={item} value={item} />
+            ))}
           </Picker>
         </View>
 
