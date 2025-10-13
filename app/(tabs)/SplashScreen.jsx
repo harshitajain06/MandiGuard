@@ -6,6 +6,7 @@ import {
     Easing,
     Image,
     Platform,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -68,8 +69,12 @@ export default function SplashScreen() {
         <LanguageToggle />
       </View>
       
-      {/* Main Content */}
-      <View style={styles.content}>
+      {/* Main Content with ScrollView */}
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
         {/* Logo/Icon */}
          <Animated.View 
            style={[
@@ -91,6 +96,26 @@ export default function SplashScreen() {
              />
            </View>
          </Animated.View>
+
+        {/* Get Started Button - Now directly below logo */}
+        <Animated.View 
+          style={[
+            styles.buttonContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <TouchableOpacity 
+            style={styles.getStartedButton} 
+            onPress={handleGetStarted}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.getStartedText}>{getTranslation('splashGetStarted', language)}</Text>
+            <Text style={styles.getStartedArrow}>→</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* App Title */}
         <Animated.View 
@@ -136,26 +161,6 @@ export default function SplashScreen() {
           </View>
         </Animated.View>
 
-        {/* Get Started Button */}
-        <Animated.View 
-          style={[
-            styles.buttonContainer,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
-          <TouchableOpacity 
-            style={styles.getStartedButton} 
-            onPress={handleGetStarted}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.getStartedText}>{getTranslation('splashGetStarted', language)}</Text>
-            <Text style={styles.getStartedArrow}>→</Text>
-          </TouchableOpacity>
-        </Animated.View>
-
         {/* Footer */}
         <Animated.View 
           style={[
@@ -170,7 +175,7 @@ export default function SplashScreen() {
             {getTranslation('splashFooter', language)}
           </Text>
         </Animated.View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -203,58 +208,60 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 40,
   },
   logoContainer: {
-    marginBottom: 40,
+    marginBottom: 20,
+    marginTop: 10,
   },
   logoCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#3b82f6',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 6,
     },
     shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-    padding: 10,
+    shadowRadius: 12,
+    elevation: 6,
+    padding: 8,
   },
   logoImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 75,
+    height: 75,
+    borderRadius: 38,
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 25,
+    marginTop: 15,
   },
   appTitle: {
-    fontSize: Platform.OS === 'web' ? 48 : 36,
+    fontSize: Platform.OS === 'web' ? 38 : 30,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   appSubtitle: {
-    fontSize: Platform.OS === 'web' ? 18 : 16,
+    fontSize: Platform.OS === 'web' ? 15 : 14,
     color: '#f1f5f9',
     textAlign: 'center',
-    lineHeight: Platform.OS === 'web' ? 26 : 24,
-    maxWidth: Platform.OS === 'web' ? 500 : '100%',
+    lineHeight: Platform.OS === 'web' ? 22 : 20,
+    maxWidth: Platform.OS === 'web' ? 450 : '100%',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -263,23 +270,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: 60,
+    marginBottom: 35,
     ...(Platform.OS === 'web' && {
-      maxWidth: 400,
+      maxWidth: 380,
     }),
   },
   featureItem: {
     alignItems: 'center',
-    marginHorizontal: 15,
-    marginVertical: 10,
-    minWidth: 80,
+    marginHorizontal: 12,
+    marginVertical: 8,
+    minWidth: 70,
   },
   featureIcon: {
-    fontSize: 28,
-    marginBottom: 8,
+    fontSize: 24,
+    marginBottom: 6,
   },
   featureText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#f1f5f9',
     textAlign: 'center',
     fontWeight: '500',
@@ -290,22 +297,23 @@ const styles = StyleSheet.create({
   buttonContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
+    marginTop: 8,
   },
   getStartedButton: {
     backgroundColor: '#3b82f6',
-    paddingHorizontal: 40,
-    paddingVertical: 16,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
     borderRadius: 50,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#3b82f6',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 3,
     },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 6,
     elevation: 4,
     ...(Platform.OS === 'web' && {
       cursor: 'pointer',
@@ -319,20 +327,21 @@ const styles = StyleSheet.create({
   },
   getStartedText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 8,
+    marginRight: 6,
   },
   getStartedArrow: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   footer: {
     alignItems: 'center',
+    marginTop: 10,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#e2e8f0',
     textAlign: 'center',
     fontStyle: 'italic',
